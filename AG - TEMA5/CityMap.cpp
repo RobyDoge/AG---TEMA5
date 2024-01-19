@@ -52,6 +52,9 @@ void CityMap::paintEvent(QPaintEvent* event)
 			auto [xSecondNode, ySecondNode] = coordinatesSecondNode;
 			painter.drawLine(xFirstNode, yFirstNode, xSecondNode, ySecondNode);
 		}
+		m_firstNodeSelected = false;
+		m_secondNodeSelected = false;
+		m_shortestPath.clear();
 	}
 }
 
@@ -74,8 +77,6 @@ void CityMap::mousePressEvent(QMouseEvent* event)
 	{
 		m_shortestPath = m_paths->GetPath(m_firstNode, m_secondNode);
 		update();
-		m_firstNodeSelected = false;
-		m_secondNodeSelected = false;
 	}
 
 }

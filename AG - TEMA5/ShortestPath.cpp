@@ -3,6 +3,7 @@
 #include <queue>
 #include <QtWidgets/QMainWindow>
 #include <fstream>
+
 ShortestPath::ShortestPath(const Graph& graph)
 {
 	m_graph = graph;
@@ -11,12 +12,17 @@ ShortestPath::ShortestPath(const Graph& graph)
 	{
 		m_predecessor.push_back(0);
 	}
-	Dijkstra();
-
 }
 
-std::vector<Graph::Node> ShortestPath::GetPath(const Graph::Node firstNode, const Graph::Node secondNode) const
+std::vector<Graph::Node> ShortestPath::GetPath(const Graph::Node& firstNode, const Graph::Node& secondNode)
 {
+	//m_firstNode = firstNode;
+	m_firstNode = Graph::Node(26800, m_graph.GetNodes().at(26800));
+	//m_secondNode = secondNode;
+	m_secondNode = Graph::Node(15735, m_graph.GetNodes().at(15735));
+
+	Dijkstra();
+
 	std::vector<Graph::Node> path;
 	auto currentNode = secondNode;
 	while(currentNode.id != firstNode.id)
@@ -32,50 +38,47 @@ std::vector<Graph::Node> ShortestPath::GetPath(const Graph::Node firstNode, cons
 
 void ShortestPath::Dijkstra()
 {
-	std::vector distance(m_predecessor.size(),-1);
+	std::vector distance(m_predecessor.size(), INT_MAX);
 	std::vector visited(m_predecessor.size(), false);
 	std::priority_queue<idNode_distanceClosestNode, std::vector<idNode_distanceClosestNode>, Compare> distancePriority;
-	auto currentNode = *m_graph.GetNodes().begin();
-	distance[currentNode.first] = 0;
-	distancePriority.emplace(currentNode.first, 0);
+	distance[m_firstNode.id] = 0;
+	distancePriority.emplace(m_firstNode.id, 0);
 
 	while(!distancePriority.empty())
 	{
 		
 		const auto [idNewNode, distanceClosestNode] = distancePriority.top();
 		distancePriority.pop();
-
+		if (idNewNode == m_secondNode.id)
+		{
+			break;
+		}
 		if(visited[idNewNode])
 		{
+			
 			continue;
 		}
 		visited[idNewNode] = true;
 
-
-		/*for(const auto& [firstNode,secondNode] : m_graph.GetArches() | std::views::keys)*/
 		Graph::Node firstNode{ idNewNode,m_graph.GetNodes().at(idNewNode) };
 		auto secondNodes = m_graph.GetAdjacencyList().at(firstNode);
 		for(const auto& secondNode : secondNodes)
 		{
-			if (distance[secondNode.id] == -1 || distance[secondNode.id] > distance[idNewNode] + m_graph.
-				GetArches().at({firstNode, secondNode}))
+			const auto cost = m_graph.GetArches().at({firstNode, secondNode});
+			const auto maybeNewCost = distanceClosestNode + cost;
+
+			const auto oldCost = distance[secondNode.id];
+			
+			 
+			if (oldCost == -1 || oldCost > maybeNewCost)
 			{
-				distance[secondNode.id] = distance[idNewNode] + m_graph.GetArches().at({firstNode, secondNode});
+				distance[secondNode.id] = maybeNewCost;
 				distancePriority.emplace(secondNode.id, distance[secondNode.id]);
 				m_predecessor[secondNode.id] = idNewNode;
 			}
 			
 		}
 	}
-	SavePredecessor();
 
 }
 
-void ShortestPath::SavePredecessor() const
-{
-	std::ofstream output("output.txt");
-	for(long i=0;i<m_predecessor.size();i++)
-	{
-		output << i << " "<<m_predecessor[i]<<"\n";
-	}
-}

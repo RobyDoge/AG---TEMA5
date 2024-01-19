@@ -5,10 +5,10 @@ class ShortestPath
 {
 public:
 	ShortestPath(const Graph& graph);
-	std::vector<Graph::Node> GetPath(Graph::Node firstNode, Graph::Node secondNode) const;
+	std::vector<Graph::Node> GetPath(const Graph::Node& firstNode, const Graph::Node& secondNode);
 private:
 	void Dijkstra();
-	void SavePredecessor() const;
+
 private:
 	typedef std::pair<int, long> idNode_distanceClosestNode;
 	struct Compare {
@@ -17,10 +17,11 @@ private:
 		}
 	};
 private:
-	std::vector<Graph::Node>m_path;
-	Graph m_graph;
-	std::vector<int> m_predecessor;
-	
+	std::vector<Graph::Node>m_path{};
+	Graph m_graph{};
+	std::vector<int> m_predecessor{};
+	Graph::Node m_firstNode{};
+	Graph::Node m_secondNode{};
 };
 
 
