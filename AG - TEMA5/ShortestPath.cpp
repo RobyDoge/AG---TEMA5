@@ -16,10 +16,11 @@ ShortestPath::ShortestPath(const Graph& graph)
 
 std::vector<Graph::Node> ShortestPath::GetPath(const Graph::Node& firstNode, const Graph::Node& secondNode)
 {
-	//m_firstNode = firstNode;
-	m_firstNode = Graph::Node(26800, m_graph.GetNodes().at(26800));
-	//m_secondNode = secondNode;
-	m_secondNode = Graph::Node(15735, m_graph.GetNodes().at(15735));
+	/*m_firstNode = firstNode;
+	m_secondNode = secondNode;*/
+
+	m_firstNode = { 0,m_graph.GetNodes().at(0) };
+	m_secondNode = { 4,m_graph.GetNodes().at(4) };
 
 	Dijkstra();
 
@@ -29,7 +30,7 @@ std::vector<Graph::Node> ShortestPath::GetPath(const Graph::Node& firstNode, con
 	{
 		path.push_back(currentNode);
 		auto idNextNode = m_predecessor[currentNode.id];
-		currentNode = Graph::Node(idNextNode,m_graph.GetNodes().at(idNextNode));
+		currentNode = { idNextNode,m_graph.GetNodes().at(idNextNode) };
 	}
 	path.push_back(firstNode);
 	std::ranges::reverse(path);
@@ -39,8 +40,12 @@ std::vector<Graph::Node> ShortestPath::GetPath(const Graph::Node& firstNode, con
 void ShortestPath::Dijkstra()
 {
 	std::vector distance(m_predecessor.size(), INT_MAX);
-	std::vector visited(m_predecessor.size(), false);
-	std::priority_queue<idNode_distanceClosestNode, std::vector<idNode_distanceClosestNode>, Compare> distancePriority;
+	std::vector<int> visited;
+	auto compare = [](const idNode_distanceClosestNode& a, const idNode_distanceClosestNode& b) {
+		return a.second > b.second;
+		};
+
+	std::priority_queue<idNode_distanceClosestNode, std::vector<idNode_distanceClosestNode>, decltype(compare)> distancePriority(compare);
 	distance[m_firstNode.id] = 0;
 	distancePriority.emplace(m_firstNode.id, 0);
 
@@ -53,24 +58,21 @@ void ShortestPath::Dijkstra()
 		{
 			break;
 		}
-		if(visited[idNewNode])
+		if(std::ranges::find(visited,idNewNode)!= visited.end())
 		{
-			
 			continue;
 		}
-		visited[idNewNode] = true;
+		visited.push_back(idNewNode);
 
-		Graph::Node firstNode{ idNewNode,m_graph.GetNodes().at(idNewNode) };
-		auto secondNodes = m_graph.GetAdjacencyList().at(firstNode);
+		const Graph::Node& firstNode{ idNewNode,m_graph.GetNodes().at(idNewNode) };
+		const auto secondNodes = m_graph.GetAdjacencyList().at(firstNode);
 		for(const auto& secondNode : secondNodes)
 		{
 			const auto cost = m_graph.GetArches().at({firstNode, secondNode});
 			const auto maybeNewCost = distanceClosestNode + cost;
 
-			const auto oldCost = distance[secondNode.id];
-			
-			 
-			if (oldCost == -1 || oldCost > maybeNewCost)
+			const auto& oldCost = distance[secondNode.id];
+			if (oldCost > maybeNewCost)
 			{
 				distance[secondNode.id] = maybeNewCost;
 				distancePriority.emplace(secondNode.id, distance[secondNode.id]);
